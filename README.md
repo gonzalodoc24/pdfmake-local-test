@@ -9,3 +9,6 @@ Later, run the following commands
     
 
 You can modify the code in server.js to log and debug what you need
+
+
+When you make a change, it is necessary to reload the server
