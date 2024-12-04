@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 
 app.post('/pdf/createpdf', (req, res) => {
   
-    let documentDefinition = null;
+    let dd = null;
     try {
         const { pdfdefinition } = req.body.form_params;
 
@@ -23,9 +23,15 @@ app.post('/pdf/createpdf', (req, res) => {
         // console.log('Base64 encoded PDF definition:', pdfdefinition);
 
         // Decode the base64 string to see the actual document definition
-        const decodedDefinition = Buffer.from(pdfdefinition, 'base64').toString('utf8');
-        console.log('Decoded PDF definition:', decodedDefinition);
-        documentDefinition = JSON.parse(decodedDefinition);
+        var decodedDefinition = Buffer.from(pdfdefinition, 'base64').toString('utf8');
+
+        console.log("\n..........\n");
+        // console.log(decodedDefinition);
+        console.log("\n..........\n");
+        
+        // Create function to return the JS object
+        let createObject = new Function('return ' + decodedDefinition);
+        dd = createObject();
 
         const printer = new pdfMake({
             Roboto: {
@@ -36,7 +42,10 @@ app.post('/pdf/createpdf', (req, res) => {
             }
         });
 
-        const pdfDoc = printer.createPdfKitDocument(documentDefinition);
+        // Should print "object", not "string"
+        console.log("Document Definition data type: " + typeof dd);
+
+        const pdfDoc = printer.createPdfKitDocument(dd);
 
         let chunks = [];
         pdfDoc.on('data', (chunk) => {
@@ -51,7 +60,7 @@ app.post('/pdf/createpdf', (req, res) => {
         pdfDoc.end();
     } catch (error) {
 
-        console.log("\n", documentDefinition ,"\n");
+        // console.log("\n", dd ,"\n");
 
         console.log("\n", error ,"\n");
     }
