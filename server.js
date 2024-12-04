@@ -11,12 +11,17 @@ app.use(bodyParser.json());
 app.post('/pdf/createpdf', (req, res) => {
   
     let dd = null;
+    let status = 400;
+    let msg = '';
+
     try {
         const { pdfdefinition } = req.body.form_params;
 
         if (!pdfdefinition) {
 
-            return res.status(400).send('PDF definition not provided');
+            console.log("\x1b[31mPDF definition not provided\x1b[0m");
+
+            return res.status(status).send('PDF definition not provided');
         }
 
         // Log the base64 encoded PDF definition
@@ -43,7 +48,7 @@ app.post('/pdf/createpdf', (req, res) => {
         });
 
         // Should print "object", not "string"
-        console.log("Document Definition data type: " + typeof dd);
+        console.log("\x1b[36mDocument Definition data type: " + typeof dd + "\x1b[0m");
 
         const pdfDoc = printer.createPdfKitDocument(dd);
 
@@ -58,14 +63,24 @@ app.post('/pdf/createpdf', (req, res) => {
         });
 
         pdfDoc.end();
+
+        console.log("\n\x1b[32mDone!\x1b[32m\n");
+        status = 200;
+        msg = 'OK';
+
     } catch (error) {
 
-        // console.log("\n", dd ,"\n");
+        console.log("\n\x1b[31mOops!\x1b[0m\n\n", error ,"\n\n");
 
-        console.log("\n", error ,"\n");
+        status = 500;
+        msg = 'FAIL';
+        
+    } finally{
+        console.log("\n\x1b[36m----end----\x1b[0m\n");
+        
+        return res.status(status).send(msg);
     }
 
-  console.log("\n----end----\n");
 });
 
 app.listen(port, () => {
