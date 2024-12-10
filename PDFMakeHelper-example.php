@@ -21,8 +21,13 @@ class PDFMakeHelper
         if(!$documentDefinition){
             return false;
         }
-        $nodeServer = $app->settings['settings']['node_url'] . "/pdf/createpdf";
-        $nodeServer = "http://192.168.1.12:3000/pdf/createpdf";
+
+        $ip ="";
+        $port = '';
+
+        $nodeServer = $app->settings['settings']['node_url'] . "/pdf/getB64";
+        $nodeServer = "http://$ip:$port/pdf/getB64";
+        //$nodeServer = "http://192.168.1.12:3000/pdf/getB64"; // Example
 
         //Limpio el documento de espacios en blanco que romperian el server
         $documentDefinition = $app->commonController->removerWhiteSpaces($documentDefinition);
@@ -49,9 +54,18 @@ class PDFMakeHelper
             throw $e;
         }
 
-        if($code == 200){
-            $pdfBase64Binary = $response;
-            return $pdfBase64Binary;
+        if ($code == 200) {
+            // Decodifico la respuesta JSON
+            $responseArray = json_decode($response, true);
+    
+            // Verifico si contiene 'pdfBase64' y devuelvo el valor
+            if (isset($responseArray['pdfBase64'])) {
+                return $responseArray['pdfBase64'];
+            } else {
+                // Si no se encuentra 'pdfBase64', logueo el error
+                LogHelper::logMessage("getBase64PDF: 'pdfBase64' not found in response. Response: $response", LogHelper::LOG_TYPE_ERROR);
+                return false;
+            }
         }
 
         LogHelper::logMessage("getBase64PDF : Error de Node Server codigo $code  - Document definition $documentDefinition", LogHelper::LOG_TYPE_ERROR);
