@@ -8,7 +8,7 @@ const port = 3000;
 
 app.use(bodyParser.json());
 
-app.post('/pdf/createpdf', (req, res) => {
+app.post('/pdf/getB64', (req, res) => {
   
     let dd = null;
     let status = 400;
@@ -31,7 +31,7 @@ app.post('/pdf/createpdf', (req, res) => {
         var decodedDefinition = Buffer.from(pdfdefinition, 'base64').toString('utf8');
 
         console.log("\n..........\n");
-        // console.log(decodedDefinition);
+        //console.log(decodedDefinition);
         console.log("\n..........\n");
         
         // Create function to return the JS object
@@ -57,28 +57,44 @@ app.post('/pdf/createpdf', (req, res) => {
             chunks.push(chunk);
         });
 
+        /*
         pdfDoc.on('end', () => {
             const result = Buffer.concat(chunks);
             res.send(result.toString('base64'));
         });
+        */
+
+        pdfDoc.on('end', () => {
+            const result = Buffer.concat(chunks);
+
+            // Convert PDF to base64 and send it in the response
+            const base64Pdf = result.toString('base64');
+
+            status = 200;
+            msg = 'OK';
+
+            res.status(status).send({ message: msg, pdfBase64: base64Pdf });
+        });
+
+        // pdfDoc.on('end', () => {
+        //     const result = Buffer.concat(chunks);
+        //     res.send(result.toString('base64'));
+        // });
 
         pdfDoc.end();
 
         console.log("\n\x1b[32mDone!\x1b[32m\n");
-        status = 200;
-        msg = 'OK';
 
     } catch (error) {
-
         console.log("\n\x1b[31mOops!\x1b[0m\n\n", error ,"\n\n");
 
         status = 500;
         msg = 'FAIL';
+
+        res.status(status).send({ message: msg, error: error?.message });
         
     } finally{
         console.log("\n\x1b[36m----end----\x1b[0m\n");
-        
-        return res.status(status).send(msg);
     }
 
 });
